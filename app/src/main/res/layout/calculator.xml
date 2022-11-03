@@ -17,6 +17,26 @@
         app:layout_constraintBottom_toBottomOf="parent"
         >
 
+        <TextView
+            android:id="@+id/history"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            />
+
+        <TextView
+            android:id="@+id/result"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:hint="0"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/history" />
+
         <Button
             android:id="@+id/division"
             android:layout_width="0dp"
@@ -25,7 +45,7 @@
             android:text="/"
             app:layout_constraintEnd_toStartOf="@+id/multiply"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/result" />
 
         <Button
             android:id="@+id/multiply"
@@ -35,7 +55,7 @@
             android:text="*"
             app:layout_constraintEnd_toStartOf="@+id/plus"
             app:layout_constraintStart_toEndOf="@+id/division"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/result" />
 
         <Button
             android:id="@+id/plus"
@@ -45,7 +65,7 @@
             android:text="+"
             app:layout_constraintEnd_toStartOf="@+id/minus"
             app:layout_constraintStart_toEndOf="@+id/multiply"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/result" />
 
         <Button
             android:id="@+id/minus"
@@ -54,7 +74,7 @@
             android:text="-"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/plus"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/result" />
 
 
         <Button
