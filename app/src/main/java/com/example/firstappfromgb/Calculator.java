@@ -4,8 +4,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public class Calculator implements Parcelable {
+    private static final int SCALE = 9;
+    private static final RoundingMode ROUND = RoundingMode.CEILING;
+
     private static final String EQUAL = "=";
     private static final String ZERO = "0";
     private static final String EMPTY = "";
@@ -80,6 +84,16 @@ public class Calculator implements Parcelable {
         this.input = ZERO;
     }
 
+    private void initPreviousMathOperation(){
+        this.previousMathOperation = null;
+    }
+    private void initCurrentMathOperation(){
+        this.currentMathOperation = null;
+    }
+    private void initCurrentButton(){
+        this.currentButton = null;
+    }
+
     public Calculator() {
         initCalculator();
     }
@@ -97,81 +111,53 @@ public class Calculator implements Parcelable {
                 break;
             }
 
-            case BUTTON_PLUS:{
-                if (isNumber(currentButton) && previousMathOperation != null){
-                    calculate();
-                    previousMathOperation = Buttons.BUTTON_PLUS;
-                    input = result.toString();
-                }
-                if (previousMathOperation == null) {
-                    previousMathOperation = Buttons.BUTTON_PLUS;
-                    firstNumber = secondNumber;
-                }
-                currentMathOperation = Buttons.BUTTON_PLUS;
-                currentButton = Buttons.BUTTON_PLUS;
-                addHistory(Buttons.BUTTON_PLUS);
-                break;
-            }
+            case BUTTON_PLUS:
+
+            case BUTTON_DIVIDE:
+
+            case BUTTON_MULTIPLY:
 
             case BUTTON_MINUS: {
-                if (isNumber(currentButton) && previousMathOperation != null){
+                if (currentMathOperation == Buttons.BUTTON_EQUAL) {
+                    result = new BigDecimal(input);
+                    firstNumber = result;
+                }
+                else if (isNumber(currentButton) && previousMathOperation != null){
                     calculate();
-                    previousMathOperation = Buttons.BUTTON_MINUS;
+                    previousMathOperation = button;
                     input = result.toString();
                 }
-                if (previousMathOperation == null) {
-                    previousMathOperation = Buttons.BUTTON_MINUS;
+                else if (previousMathOperation == null) {
+                    previousMathOperation = button;
                     firstNumber = secondNumber;
                 }
-                currentMathOperation = Buttons.BUTTON_MINUS;
-                currentButton = Buttons.BUTTON_MINUS;
-                addHistory(Buttons.BUTTON_MINUS);
-                break;
-            }
-
-            case BUTTON_MULTIPLY:{
-                if (isNumber(currentButton) && previousMathOperation != null){
-                    calculate();
-                    previousMathOperation = Buttons.BUTTON_MULTIPLY;
-                    input = result.toString();
-                }
-                if (previousMathOperation == null) {
-                    previousMathOperation = Buttons.BUTTON_MULTIPLY;
-                    firstNumber = secondNumber;
-                }
-                currentMathOperation = Buttons.BUTTON_MULTIPLY;
-                currentButton = Buttons.BUTTON_MULTIPLY;
-                addHistory(Buttons.BUTTON_MULTIPLY);
-                break;
-            }
-
-            case BUTTON_DIVIDE:{
-                if (isNumber(currentButton) && previousMathOperation != null){
-                    calculate();
-                    previousMathOperation = Buttons.BUTTON_DIVIDE;
-                    input = result.toString();
-                }
-                if (previousMathOperation == null) {
-                    previousMathOperation = Buttons.BUTTON_DIVIDE;
-                    firstNumber = secondNumber;
-                }
-                currentMathOperation = Buttons.BUTTON_DIVIDE;
-                currentButton = Buttons.BUTTON_DIVIDE;
-                addHistory(Buttons.BUTTON_DIVIDE);
+                currentMathOperation = button;
+                currentButton = button;
+                addHistory(button);
                 break;
             }
 
             case BUTTON_EQUAL:{
                 equal();
+                currentButton= button;
+                currentMathOperation = button;
                 break;
             }
 
             case BUTTON_DOT:{
                 addDot();
+                //secondNumber = new BigDecimal(input);
+                currentButton = button;
                 break;
             }
 
             case BUTTON0: {
+                if (!isNumber(currentButton) || (currentButton == Buttons.BUTTON_EQUAL)) {
+                    input = ZERO;
+                    secondNumber = new BigDecimal(ZERO);
+                    currentButton = button;//???
+                    break;
+                }
                 if (!input.equals("0")){
                     input += button.getTitle();
                     secondNumber = new BigDecimal(input);
@@ -180,7 +166,8 @@ public class Calculator implements Parcelable {
                 }
             }
             default: {
-                if (input.equals("0") || currentButton == Buttons.BUTTON_PLUS || currentButton == Buttons.BUTTON_MINUS || currentButton == Buttons.BUTTON_MULTIPLY || currentButton == Buttons.BUTTON_DIVIDE) {
+                //if (input.equals("0") || currentButton == Buttons.BUTTON_PLUS || currentButton == Buttons.BUTTON_MINUS || currentButton == Buttons.BUTTON_MULTIPLY || currentButton == Buttons.BUTTON_DIVIDE || currentButton == Buttons.BUTTON_EQUAL) {
+                if (input.equals("0") || !isNumber(currentButton)) {
                     input = button.getTitle();
                     previousMathOperation = currentMathOperation;
                 } else {
@@ -213,7 +200,8 @@ public class Calculator implements Parcelable {
                 break;
             }
             case BUTTON_DIVIDE: {
-                result = firstNumber.divide(secondNumber);
+                result = firstNumber.divide(secondNumber, SCALE, ROUND);
+                result = result.stripTrailingZeros();
                 firstNumber = result;
                 secondNumber = result;
                 break;
@@ -237,7 +225,8 @@ public class Calculator implements Parcelable {
             case BUTTON6:
             case BUTTON7:
             case BUTTON8:
-            case BUTTON9: {
+            case BUTTON9:
+            case BUTTON_DOT:{
                 return true;
             }
         }
@@ -245,6 +234,10 @@ public class Calculator implements Parcelable {
     }
 
     private void addDot() {
+        if (currentButton == Buttons.BUTTON_EQUAL) {
+            input = ZERO + DOT;
+            return;
+        }
         if (!input.contains(DOT)) {
             input = input + DOT;
         }
@@ -252,9 +245,16 @@ public class Calculator implements Parcelable {
 
 
     private void equal() {
-        history = firstNumber.toString() + previousMathOperation.getTitle() + secondNumber.toString() + EQUAL;
+        if (currentButton == Buttons.BUTTON_EQUAL) {
+            return;
+        }
+        history = firstNumber.stripTrailingZeros() + previousMathOperation.getTitle() + secondNumber.stripTrailingZeros() + EQUAL;
         calculate();
         input = result.toString();
+        this.firstNumber = new BigDecimal(ZERO);
+        this.secondNumber = new BigDecimal(input);
+        previousMathOperation = null;
+        currentMathOperation = null;
     }
 
 
@@ -263,7 +263,7 @@ public class Calculator implements Parcelable {
         if (history.equals(EMPTY)) {
             history = input + button.getTitle();
         } else {
-            history = result + button.getTitle();
+            history = result.stripTrailingZeros() + button.getTitle();
         }
     }
 
@@ -273,10 +273,17 @@ public class Calculator implements Parcelable {
         initResult();
         initInput();
         initHistory();
+        initCurrentButton();
+        initCurrentMathOperation();
+        initPreviousMathOperation();
 
     }
 
     private void del() {
+        if (!isNumber(currentButton)) {
+            input = input.substring(0, input.length() - 1);
+            return;
+        }
         if (input.equals(ZERO)) {
             return;
         } else if (input.length() == 1) {
@@ -285,6 +292,14 @@ public class Calculator implements Parcelable {
             input = input.substring(0, input.length() - 1);
         }
 
+    }
+
+    private BigDecimal correctLargeNumber (BigDecimal number){
+        BigDecimal result = new BigDecimal(0);
+        if (number.scale() > SCALE) {
+            result = number.setScale(SCALE, ROUND);
+        }
+        return result.stripTrailingZeros();
     }
 
     public String getInput() {
