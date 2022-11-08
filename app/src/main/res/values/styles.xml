@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="CalculatorButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:textSize">@dimen/buttonTextSize</item>
+        <item name="android:layout_marginTop">@dimen/marginCalculatorButton</item>
+        <item name="android:layout_marginBottom">@dimen/marginCalculatorButton</item>
+        <item name="cornerRadius">@dimen/buttonRadius</item>
+        <item name="android:textColor">@color/black</item>
+
+    </style>
+
+
+
+</resources>

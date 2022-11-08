@@ -146,7 +146,6 @@ public class Calculator implements Parcelable {
 
             case BUTTON_DOT:{
                 addDot();
-                //secondNumber = new BigDecimal(input);
                 currentButton = button;
                 break;
             }
@@ -155,7 +154,7 @@ public class Calculator implements Parcelable {
                 if (!isNumber(currentButton) || (currentButton == Buttons.BUTTON_EQUAL)) {
                     input = ZERO;
                     secondNumber = new BigDecimal(ZERO);
-                    currentButton = button;//???
+                    currentButton = button;
                     break;
                 }
                 if (!input.equals("0")){
@@ -166,7 +165,6 @@ public class Calculator implements Parcelable {
                 }
             }
             default: {
-                //if (input.equals("0") || currentButton == Buttons.BUTTON_PLUS || currentButton == Buttons.BUTTON_MINUS || currentButton == Buttons.BUTTON_MULTIPLY || currentButton == Buttons.BUTTON_DIVIDE || currentButton == Buttons.BUTTON_EQUAL) {
                 if (input.equals("0") || !isNumber(currentButton)) {
                     input = button.getTitle();
                     previousMathOperation = currentMathOperation;
@@ -294,13 +292,13 @@ public class Calculator implements Parcelable {
 
     }
 
-    private BigDecimal correctLargeNumber (BigDecimal number){
-        BigDecimal result = new BigDecimal(0);
-        if (number.scale() > SCALE) {
-            result = number.setScale(SCALE, ROUND);
-        }
-        return result.stripTrailingZeros();
-    }
+//    private BigDecimal correctLargeNumber (BigDecimal number){
+//        BigDecimal result = new BigDecimal(0);
+//        if (number.scale() > SCALE) {
+//            result = number.setScale(SCALE, ROUND);
+//        }
+//        return result.stripTrailingZeros();
+//    }
 
     public String getInput() {
         return input;
