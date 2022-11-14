@@ -14,6 +14,7 @@ public class Calculator implements Parcelable {
     private static final String ZERO = "0";
     private static final String EMPTY = "";
     private static final String DOT = ".";
+    private static final String NULL = "null";
 
     private String history;
     private String input;
@@ -30,9 +31,24 @@ public class Calculator implements Parcelable {
         firstNumber = new BigDecimal(in.readString());
         secondNumber = new BigDecimal(in.readString());
         result = new BigDecimal(in.readString());
-        previousMathOperation = Buttons.valueOf(in.readString());
-        currentMathOperation = Buttons.valueOf(in.readString());
-        currentButton = Buttons.valueOf(in.readString());
+        String mathOperation = in.readString();
+        if (mathOperation.equals(NULL)) {
+            previousMathOperation = null;
+        } else {
+            previousMathOperation = Buttons.valueOf(mathOperation);
+        }
+        String curMath = in.readString();
+        if (curMath.equals(NULL)) {
+            currentMathOperation = null;
+        } else {
+            currentMathOperation = Buttons.valueOf(curMath);
+        }
+        String curBut = in.readString();
+        if (curBut.equals(NULL)) {
+            currentButton = null;
+        } else {
+            currentButton = Buttons.valueOf(curBut);
+        }
     }
 
     @Override
@@ -42,9 +58,20 @@ public class Calculator implements Parcelable {
         dest.writeString(firstNumber.toString());
         dest.writeString(secondNumber.toString());
         dest.writeString(result.toString());
-        dest.writeString(previousMathOperation.getTitle());
-        dest.writeString(currentButton.getTitle());
-        dest.writeString(currentButton.getTitle());
+        if (previousMathOperation != null) {
+            dest.writeString(previousMathOperation.getTitle());
+        } else
+            dest.writeString("null");
+        if (currentMathOperation != null) {
+            dest.writeString(currentMathOperation.getTitle());
+        } else {
+            dest.writeString("null");
+        }
+        if(currentButton != null) {
+            dest.writeString(currentButton.getTitle());
+        } else {
+            dest.writeString("null");
+        }
     }
 
     @Override
