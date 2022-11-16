@@ -1,13 +1,23 @@
 package com.example.firstappfromgb;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String KEY = "KEY";
+
     Calculator calculator;
     TextView result;
     TextView history;
@@ -15,7 +25,56 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        ThemeStorage storage = ThemeStorage.getInstance(getApplicationContext());
+
+        ActivityResultLauncher<Intent>launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Intent data = result.getData();
+                    Theme chosenTheme = (Theme) data.getSerializableExtra(ThemeSelectionActivity.CURRENT_THEME);
+                    storage.saveTheme(chosenTheme);
+                    recreate();
+                }
+            }
+        });
+
+        Theme savedTheme = ThemeStorage.getInstance(getApplicationContext()).getTheme();
+        setTheme(savedTheme.getTheme());
+
+        if (savedTheme.isModeNight() == true) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+        }
+
+
         setContentView(R.layout.calculator);
+
+        Button themeSettingsLight = findViewById(R.id.changeThemeLight);
+        Button themeSettingsDark = findViewById(R.id.changeThemeDark);
+        if (savedTheme.isModeNight() == false) {
+            themeSettingsLight.setVisibility(View.GONE);
+            themeSettingsDark.setVisibility(View.VISIBLE);
+        } else {
+            themeSettingsDark.setVisibility(View.GONE);
+            themeSettingsLight.setVisibility(View.VISIBLE);
+        }
+
+        View.OnClickListener settingsClickListener = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, ThemeSelectionActivity.class);
+                intent.putExtra(ThemeSelectionActivity.SELECTED_THEME, savedTheme);
+                launcher.launch(intent);
+                //startActivity(intent);
+            }
+        };
+
+        themeSettingsLight.setOnClickListener(settingsClickListener);
+        themeSettingsDark.setOnClickListener(settingsClickListener);
+
 
         calculator = new Calculator();
         result = findViewById(R.id.result);
@@ -126,13 +185,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable("KEY", calculator);
+        outState.putParcelable(KEY, calculator);
     }
 
     @Override
     protected void onRestoreInstanceState(@NonNull Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        calculator = savedInstanceState.getParcelable("KEY");
+        calculator = savedInstanceState.getParcelable(KEY);
         result.setText(calculator.getInput());
         history.setText(calculator.getHistory());
     }
